@@ -2,7 +2,7 @@
 
 projeto de console em Java para gerenciar uma lista de tarefas.
 
-## o que dá pra fazer
+## O que dá pra fazer
 
 - Adicionar tarefa (nome e descrição)
 - Listar tarefas
@@ -14,7 +14,7 @@ status possíveis:
 - FAZENDO
 - FEITA
 
-## padrões de Projeto
+## Padrões de projeto
 
 - **Singleton**  
   Usado na classe `TaskRepository`.  
@@ -27,4 +27,4 @@ status possíveis:
 ## como rodar
 
 1. Compile:
-   javac src/Main.java
+   javac src/main.java
