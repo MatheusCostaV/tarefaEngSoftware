@@ -1,4 +1,4 @@
-# lista de Tarefas em Java
+# Lista de tarefas em Java
 
 projeto de console em Java para gerenciar uma lista de tarefas.
 
