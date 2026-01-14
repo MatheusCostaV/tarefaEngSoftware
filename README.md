@@ -17,7 +17,7 @@ status possíveis:
 ## Padrões de projeto
 
 - **Singleton**  
-  Usado na classe `TaskRepository`.  
+  Usado na classe `engsoft.tarefas;.TaskRepository`.  
   Ela é a “única fonte de verdade” das tarefas no sistema.
 
 - **Strategy**  
@@ -27,4 +27,3 @@ status possíveis:
 ## como rodar
 
 1. Compile:
-   javac src/main.java
