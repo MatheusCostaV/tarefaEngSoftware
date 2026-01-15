@@ -1,22 +1,26 @@
 package engsoft.tarefas;
 
 import java.util.Scanner;
+import java.util.List;
 
-// classe que cuida do menu e da interação pelo console
+/**
+ * Classe que cuida do menu e da interação pelo console.
+ */
 public class TaskApp {
-
+    
     private final Scanner scanner = new Scanner(System.in);
-    // uso o repositório para guardar e acessar as tarefas
     private final engsoft.tarefas.TaskRepository repo = engsoft.tarefas.TaskRepository.getInstance();
-
-    // método principal da aplicação de tarefas (loop do menu)
+    private final engsoft.tarefas.TaskListProcessor processor = 
+        new engsoft.tarefas.TaskListProcessor(new engsoft.tarefas.ListarTodasStrategy());
+    
+    /**
+     * Método principal da aplicação de tarefas (loop do menu)
+     */
     public void executar() {
         int opcao;
-
         do {
             mostrarMenu();
             opcao = lerInt("Escolha: ");
-
             switch (opcao) {
                 case 1 -> adicionarTarefa();
                 case 2 -> listarTarefas();
@@ -25,101 +29,114 @@ public class TaskApp {
                 case 0 -> System.out.println("Saindo...");
                 default -> System.out.println("Opção inválida.");
             }
-
         } while (opcao != 0);
-
         scanner.close();
     }
-
-    // mostra o menu na tela
+    
+    /**
+     * Mostra o menu principal na tela
+     */
     private void mostrarMenu() {
-        System.out.println("\n LISTA DE TAREFAS ");
+        System.out.println("\n ======== LISTA DE TAREFAS ========");
         System.out.println("1 - Adicionar tarefa");
         System.out.println("2 - Listar tarefas");
         System.out.println("3 - Excluir tarefa");
         System.out.println("4 - Alterar status");
         System.out.println("0 - Sair");
+        System.out.println("==================================");
     }
-
-    // -------- funcionalidades --------
-
-    // lê os dados e cria uma nova tarefa
+    
+    // -------- FUNCIONALIDADES --------
+    
+    /**
+     * Lê os dados e cria uma nova tarefa
+     */
     private void adicionarTarefa() {
         System.out.print("Nome: ");
         String nome = scanner.nextLine();
-
         System.out.print("Descrição: ");
         String descricao = scanner.nextLine();
-
         repo.add(nome, descricao);
-        System.out.println("Tarefa adicionada com status DISPONIVEL.");
+        System.out.println("✓ Tarefa adicionada com status DISPONIVEL.");
     }
-
-    // decide se vai listar todas ou filtrar por status
+    
+    /**
+     * Menu para decidir qual estratégia usar para listar as tarefas
+     */
     private void listarTarefas() {
         if (repo.getAll().isEmpty()) {
             System.out.println("Nenhuma tarefa cadastrada.");
             return;
         }
-
-        System.out.println("1 - Listar todas");
-        System.out.println("2 - Listar por status");
-        int op = lerInt("Opção: ");
-
-        if (op == 1) {
-            listarTodas();
-        } else if (op == 2) {
-            listarPorStatus();
+        
+        System.out.println("\n--- Selecione como deseja listar ---");
+        System.out.println("1 - Listar TODAS as tarefas");
+        System.out.println("2 - Listar por STATUS específico");
+        System.out.println("3 - Listar tarefas PENDENTES");
+        System.out.println("4 - Listar tarefas FEITAS");
+        
+        int opcao = lerInt("Opção: ");
+        
+        switch (opcao) {
+            case 1 -> exibirComEstrategia(new engsoft.tarefas.ListarTodasStrategy());
+            case 2 -> {
+                TaskStatus status = lerStatus();
+                exibirComEstrategia(new engsoft.tarefas.ListarPorStatusStrategy(status));
+            }
+            case 3 -> exibirComEstrategia(new engsoft.tarefas.ListarTarefasPendentes());
+            case 4 -> exibirComEstrategia(new engsoft.tarefas.ListarTarefasFeitas());
+            default -> System.out.println("Opção inválida.");
+        }
+    }
+    
+    /**
+     * Aplica uma estratégia e exibe as tarefas conforme o resultado
+     */
+    private void exibirComEstrategia(engsoft.tarefas.TaskListStrategy estrategia) {
+        processor.setStrategy(estrategia);
+        List<engsoft.tarefas.Task> resultado = processor.processar(repo.getAll());
+        
+        System.out.println("\n--- " + processor.getEstrategiaAtual() + " ---");
+        if (resultado.isEmpty()) {
+            System.out.println("Nenhuma tarefa encontrada com essa filtragem.");
         } else {
-            System.out.println("Opção inválida.");
-        }
-    }
-
-    // lista todas as tarefas cadastradas
-    private void listarTodas() {
-        for (engsoft.tarefas.Task t : repo.getAll()) {
-            System.out.println(t);
-        }
-    }
-
-    // lista só as tarefas com o status escolhido
-    private void listarPorStatus() {
-        engsoft.tarefas.TaskStatus status = lerStatus();
-        for (engsoft.tarefas.Task t : repo.getAll()) {
-            if (t.getStatus() == status) {
+            for (engsoft.tarefas.Task t : resultado) {
                 System.out.println(t);
             }
         }
+        System.out.println();
     }
-
-    // remove uma tarefa pelo id
+    
+    /**
+     * Remove uma tarefa pelo ID
+     */
     private void removerTarefa() {
         int id = lerInt("ID da tarefa: ");
         boolean removida = repo.remove(id);
-
         if (removida) {
-            System.out.println("Tarefa removida.");
+            System.out.println("✓ Tarefa removida.");
         } else {
-            System.out.println("Tarefa não encontrada.");
+            System.out.println("✗ Tarefa não encontrada.");
         }
     }
-
-    // muda o status de uma tarefa pelo id
+    
+    /**
+     * Muda o status de uma tarefa pelo ID
+     */
     private void alterarStatus() {
         int id = lerInt("ID da tarefa: ");
         engsoft.tarefas.TaskStatus status = lerStatus();
-
         boolean atualizada = repo.updateStatus(id, status);
-
         if (atualizada) {
-            System.out.println("Status atualizado.");
+            System.out.println("✓ Status atualizado.");
         } else {
-            System.out.println("Tarefa não encontrada.");
+            System.out.println("✗ Tarefa não encontrada.");
         }
     }
-
-
-    // lê um número inteiro do usuário (com validação simples)
+    
+    /**
+     * Lê um número inteiro do usuário (com validação simples)
+     */
     private int lerInt(String msg) {
         System.out.print(msg);
         while (!scanner.hasNextInt()) {
@@ -130,15 +147,16 @@ public class TaskApp {
         scanner.nextLine(); // limpa o \n que sobrou
         return valor;
     }
-
-    // mostra os status possíveis e devolve o escolhido
+    
+    /**
+     * Mostra os status possíveis e devolve o escolhido
+     */
     private engsoft.tarefas.TaskStatus lerStatus() {
+        System.out.println("Escolha o status:");
         System.out.println("1 - DISPONIVEL");
         System.out.println("2 - FAZENDO");
         System.out.println("3 - FEITA");
-
         int opcao = lerInt("Opção: ");
-
         return switch (opcao) {
             case 1 -> engsoft.tarefas.TaskStatus.DISPONIVEL;
             case 2 -> engsoft.tarefas.TaskStatus.FAZENDO;
